@@ -1,3 +1,7 @@
 resource/branch_dataset/*
+!resource/branch_dataset/dataset.py
 resource/test_images/*
 Proposal/*
+kaggle/*
+*.tar
+*.tar
