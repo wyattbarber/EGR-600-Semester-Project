@@ -5,3 +5,4 @@ Proposal/*
 kaggle/*
 *.tar
 *.tar
+*__pycache__*

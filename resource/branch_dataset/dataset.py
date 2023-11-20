@@ -35,8 +35,9 @@ class BranchData(Dataset):
         # apply the transform if not set to None
         if self.transform:
             input = self.transform(input)
-            output *= 255
             output = self.transform(output)
+
+        output[output != 0] = 1
         
         # returning the image and label
         return input, output
