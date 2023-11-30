@@ -4,6 +4,9 @@ from .node import Node
 from .branches import count_adjacent_pixels
 from typing import List
 
+def set_node_angles(skeleton: np.ndarray, node: Node, kernel_size: int = 9):
+    angles = get_angles(skeleton, node, kernel_size)
+    node._set_angles(angles)
 
 def get_angles(skeleton: np.ndarray, node: Node, kernel_size: int = 9) -> List[float]:
     """
