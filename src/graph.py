@@ -26,9 +26,16 @@ class Tree:
         :param image: RGB image of a tree.
         :param ImageSegmentation model: CNN to segment image to tree/not tree pixels.
         """
-        tf = T.Resize((128, 128))
-        img_in = tf(image).float().unsqueeze(0)
-        mask = model(img_in).squeeze(0).detach().permute(1, 2, 0).numpy()
+        self._size = (image.shape[1], image.shape[2])
+
+        tf_in = T.Resize((128, 128))
+        img_in = tf_in(image).float().unsqueeze(0)
+        mask = model(img_in)
+
+        tf_out = T.Resize(self._size)
+        print((image.shape[1], image.shape[2]))
+        mask = tf_out(mask).detach().squeeze(0).permute(1, 2, 0).numpy()
+
         mask[mask > 0.5] = 1
         mask[mask < 1] = 0
         self._mask = mask
@@ -52,9 +59,10 @@ class Tree:
         :return: Binary 128x128 image
         :rtype: numpy.ndarray
         """
-        out = np.zeros((128, 128, 3))
+        out = np.zeros((*self._size, 3))
         for branch in self.edges:
-            cv2.line(out, (branch[0].pixel_coord[1], branch[0].pixel_coord[0]), (branch[1].pixel_coord[1], branch[1].pixel_coord[0]), color=(1,1,1), thickness=1)
+            w = (branch[0].width + branch[1].width) // 2
+            cv2.line(out, (branch[0].pixel_coord[1], branch[0].pixel_coord[0]), (branch[1].pixel_coord[1], branch[1].pixel_coord[0]), color=(1,1,1), thickness=w)
         return out[:,:,0]
     
     @property
@@ -74,3 +82,4 @@ class Tree:
     @property
     def nodes(self):
         return self._nodes
+    
