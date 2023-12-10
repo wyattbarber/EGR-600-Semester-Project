@@ -1,7 +1,8 @@
 from .node import Node
 import numpy as np
-from typing import List
+from typing import List, Tuple
 import cv2
+from .branches import count_adjacent_pixels
 
 def set_neighbors_corr(skeleton: np.ndarray, node: Node, others: List[Node], tol: int = 3, delete: bool = False):
     scores = []
@@ -46,12 +47,11 @@ def set_neighbors_corr(skeleton: np.ndarray, node: Node, others: List[Node], tol
 
     N = len(node.angles)
     idx = np.argsort(scores)[-N:]
-    node._add_children(others[i] for i in idx)
+    node._add_children(*[others[i] for i in idx])
         
     if delete:
         for i in idx:
             del others[i]
-
 
 
 def set_neighbor_angle(node: Node, others: List[Node], i: int, w: float = 0.5):
@@ -74,6 +74,36 @@ def set_neighbor_angle(node: Node, others: List[Node], i: int, w: float = 0.5):
         else:
             scores.append(0)
         
-    N = len(node.angles)
-    idx = np.argsort(scores)[-N:]
-    node._add_children(others[i] for i in idx)
+    idx = np.argsort(scores)[-1]
+    node._add_children(others[idx])
+
+
+def set_neighbors_trace(skeleton: np.ndarray, node: Node, others: List[Node]):
+    node._add_children(*[_trace_line(skeleton, point, node.pixel_coord, others) for point in _get_adjacent_points(skeleton, node.pixel_coord)])
+
+def _get_adjacent_points(skeleton, point):
+    min_x = max(0, point[1]-1)
+    max_x = min(skeleton.shape[1]-1, point[1]+1)
+    min_y = max(0, point[0]-1)
+    max_y = min(skeleton.shape[0]-1, point[0]+1)
+
+    out = []
+    for x in range(min_x, max_x+1):
+        for y in range(min_y, max_y+1):
+            if ((y, x) != point) and skeleton[y,x]:
+                out.append((y, x))
+    return out
+
+
+def _trace_line(skeleton: np.ndarray, point: Tuple[int, int], prev: Tuple[int, int], nodes: List[Node]):
+    if count_adjacent_pixels(skeleton, point) != 2:
+        try:
+            return [n for n in nodes if n.pixel_coord == point][0]
+        except IndexError:
+            raise RuntimeError(f"Trace ended at {point} but no node found at that location")
+    else:
+        points = [p for p in _get_adjacent_points(skeleton, point) if p != prev]
+        return _trace_line(skeleton, points[0], point, nodes)
+
+
+

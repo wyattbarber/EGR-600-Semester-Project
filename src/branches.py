@@ -44,12 +44,20 @@ def set_node_width(img: np.ndarray, node: Node):
     r = [0, 0, 0, 0]
     while(img[node.pixel_coord[0] + r[0], node.pixel_coord[1]] != 0):
         r[0] += 1
+        if (node.pixel_coord[0] + r[0]) >= img.shape[0]:
+            break
     while(img[node.pixel_coord[0] - r[1], node.pixel_coord[1]] != 0):
         r[1] += 1
+        if (node.pixel_coord[0] - r[1]) < 0:
+            break
     while(img[node.pixel_coord[0], node.pixel_coord[1] + r[2]] != 0):
         r[2] += 1
+        if (node.pixel_coord[1] + r[2]) >= img.shape[1]:
+            break
     while(img[node.pixel_coord[0], node.pixel_coord[1] - r[3]] != 0):
         r[3] += 1
+        if (node.pixel_coord[1] - r[3]) < img.shape[1]:
+            break
     node._set_width(int(np.median(r)))
 
 
