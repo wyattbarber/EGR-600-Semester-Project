@@ -48,10 +48,15 @@ class Tree:
         for n in self._nodes:
             set_node_width(mask, n)
             set_node_angles(skeleton, n)
-            #set_neighbors_corr(skeleton, n, self._nodes, tol=1)
-            # for i in range(len(n.angles)):
-            #     set_neighbor_angle(n, self._nodes, i, w=0.01)
             set_neighbors_trace(skeleton, n, self._nodes)
+
+        # r = self.root
+        # free = []
+        # for n in self._nodes:
+        #     if not r.connects_to(n):
+        #         free.append(n)
+        # for n in free:
+        #     self._nodes.remove(n)
 
     def reconstruct_mask(self):
         """

@@ -51,12 +51,16 @@ class Node:
             return 1 - np.mean(w)
         
     def connects_to(self, other):
-        if other in self._children:
-            return True
-        elif len(self._children) == 0:
-            return False
-        elif any(c.connects_to(other) for c in self._children):
-            return True
-        else:
-            return False
-        
+            return self._connects_to(other, [])
+    
+    def _connects_to(self, other, checked):
+            if self in checked:
+                return False
+            elif other in self._children:
+                return True
+            elif len(self._children) == 0:
+                return False
+            elif any(c._connects_to(other, [*checked, self]) for c in self._children):
+                return True
+            else:
+                return False

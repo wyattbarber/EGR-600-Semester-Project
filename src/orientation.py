@@ -21,7 +21,7 @@ def get_angles(skeleton: np.ndarray, node: Node, kernel_size: int = 9) -> List[f
     :param Node node: Node descriptor indicating a point in skeleton where there is a branch, bend, or endpoint.
     """
     N = count_adjacent_pixels(skeleton, node.pixel_coord)
-    K = kernel_size**2
+    K = kernel_size*4
 
     cx = node.pixel_coord[1]
     cy = node.pixel_coord[0]
@@ -43,13 +43,36 @@ def get_angles(skeleton: np.ndarray, node: Node, kernel_size: int = 9) -> List[f
 
 
 def _correlate_angles(skeleton: np.ndarray, K: int, kernel_size: int):
-    corr = []
-    for mask in _make_rotating_masks(K, kernel_size):
-        corr.append(
-            np.sum(skeleton * mask)
-        )
+    # corr = []
+    # for mask in _make_rotating_masks(K, kernel_size):
+    #     corr.append(
+    #         np.sum(skeleton * mask)
+    #     )
+    # return corr
+    corr = np.zeros(K)
+    center = (
+        skeleton.shape[0] / 2,
+        skeleton.shape[1] / 2
+    )
+    for i in range(skeleton.shape[0]):
+        for j in range(skeleton.shape[1]):
+            if skeleton [i, j]:
+                a = np.arctan2( j - center[1], center[0] - i)
+                while a < 0:
+                    a += 2 * np.pi
+                r = np.sqrt((i - center[0])**2 + (j-center[1])**2)
+                if r >= 1:
+                    da = 1 / (r)
+                    for k in range(K):
+                        corr[k] += _npdf(a, da, k * (2 * np.pi / K))
     return corr
 
+def _npdf(m, s, x):
+    d = (x - m)**2
+    s2 = s * (s**2)
+    e = np.exp(-d / s2)
+    a = 1 / np.sqrt(np.pi * s2)
+    return a * e
 
 def _make_rotating_masks(N: int, kernel_size: int):
     mask = np.zeros((kernel_size, kernel_size))
