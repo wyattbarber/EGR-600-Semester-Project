@@ -6,3 +6,4 @@ kaggle/*
 *.tar
 *.tar
 *__pycache__*
+test_results_dec_10.pickle

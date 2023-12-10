@@ -96,14 +96,15 @@ def _get_adjacent_points(skeleton, point):
 
 
 def _trace_line(skeleton: np.ndarray, point: Tuple[int, int], prev: Tuple[int, int], nodes: List[Node]):
-    if count_adjacent_pixels(skeleton, point) != 2:
-        try:
-            return [n for n in nodes if n.pixel_coord == point][0]
-        except IndexError:
-            raise RuntimeError(f"Trace ended at {point} but no node found at that location")
-    else:
+    while count_adjacent_pixels(skeleton, point) == 2:
         points = [p for p in _get_adjacent_points(skeleton, point) if p != prev]
-        return _trace_line(skeleton, points[0], point, nodes)
+        prev = point
+        point = points[0]
+    try:
+        return [n for n in nodes if n.pixel_coord == point][0]
+    except IndexError:
+        raise RuntimeError(f"Trace ended at {point} but no node found at that location")
+        
 
 
 

@@ -42,3 +42,21 @@ class Node:
     
     def _add_children(self, *nodes):
         self._children.extend(nodes)
+
+    def confidence(self):
+        if len(self._children) == 0:
+            return 1
+        else:
+            w = [np.sqrt((self.width - child.width)**2) / self.width for child in self._children]            
+            return 1 - np.mean(w)
+        
+    def connects_to(self, other):
+        if other in self._children:
+            return True
+        elif len(self._children) == 0:
+            return False
+        elif any(c.connects_to(other) for c in self._children):
+            return True
+        else:
+            return False
+        

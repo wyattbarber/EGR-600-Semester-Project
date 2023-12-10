@@ -26,14 +26,15 @@ class Tree:
         :param image: RGB image of a tree.
         :param ImageSegmentation model: CNN to segment image to tree/not tree pixels.
         """
-        self._size = (image.shape[1], image.shape[2])
-
+        self._size = (image.shape[-2], image.shape[-1])
+        
         tf_in = T.Resize((128, 128))
-        img_in = tf_in(image).float().unsqueeze(0)
+        img_in = tf_in(image).float()
+        if len(img_in.shape) < 4:
+            img_in = img_in.unsqueeze(0)
         mask = model(img_in)
 
         tf_out = T.Resize(self._size)
-        print((image.shape[1], image.shape[2]))
         mask = tf_out(mask).detach().squeeze(0).permute(1, 2, 0).numpy()
 
         mask[mask > 0.5] = 1
@@ -80,6 +81,24 @@ class Tree:
         return out
     
     @property
+    def root(self):
+        root_location = (self._size[0], self._size[1]/2)
+        root_dist = 0
+        _root = None
+        for node in self._nodes:
+            dist = np.sqrt(
+                (node.pixel_coord[0] - root_location[0])**2 +
+                (node.pixel_coord[1] - root_location[1])**2
+            )
+            if (_root is None) or (dist < root_dist):
+                _root = node
+                root_dist = dist            
+        return _root
+
+    @property
     def nodes(self):
         return self._nodes
     
+    @property
+    def confidence(self):
+        return np.mean([node.confidence() for node in self._nodes])
